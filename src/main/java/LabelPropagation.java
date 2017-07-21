@@ -1,16 +1,6 @@
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,9 +45,9 @@ public class LabelPropagation
     }
 
 
-    public void readEdges(int numNodes, String file) throws IOException
+    public void readEdges(int numNodes, String fileName) throws IOException
     {
-        BufferedReader br = new BufferedReader(new FileReader(file));
+        File file = new AccessResource().readFileFromResources(fileName);
 
         nodeList = new Vector<Node>(numNodes);
         nodeOrder = new Vector<Integer>(numNodes);
@@ -69,23 +59,30 @@ public class LabelPropagation
         }
         System.out.println("Added " + numNodes + " nodes.");
 
-        String line = br.readLine();
-        while (line!=null) {
-            String[] parts = line.split("\t");
+        try {
 
-            int source = Integer.valueOf(parts[0]);
-            int target = Integer.valueOf(parts[1]);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("\t");
 
-            //System.out.println("Source is" + source);
-            //System.out.println("Target is" + target);
+                int source = Integer.valueOf(parts[0]);
+                int target = Integer.valueOf(parts[1]);
 
-            nodeList.get(source).addNeighbor(target);
-            nodeList.get(target).addNeighbor(source);
-            line=br.readLine();
+                //System.out.println("Source is" + source);
+                //System.out.println("Target is" + target);
+
+                nodeList.get(source).addNeighbor(target);
+                nodeList.get(target).addNeighbor(source);
+            }
+            scanner.close();
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
         }
 
         System.out.println("All edges read.");
-        br.close();
     }
 
     public void writeMemberships(String file) throws IOException {
@@ -223,24 +220,5 @@ public class LabelPropagation
 
         System.out.println("Detection complete!");
         threadPool.shutdown();
-    }
-
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException
-    {
-        LabelPropagation lp = new LabelPropagation();
-
-        int numNodes = 196591; //Number of nodes in the network
-        int numThreads= 8; //Number of threads to use
-
-        long startTime = System.nanoTime();
-        //input is "edgelist" format "id id" sorted by first id (ids are sequentially numbered 1 to numNodes inclusive)
-        lp.readEdges(numNodes, "gedges.txt");
-        lp.findCommunities("base_output_path",numThreads); //directory to save current list of communities to after each pass as well as final output files
-        lp.writeMemberships("membership.txt");
-        lp.writeMembershipsSmart("memberships_renumbered.txt");
-        lp.edgeCuts();
-
-        long estimatedTime = System.nanoTime() - startTime;
-        System.out.println("Elapsed Time is "+estimatedTime);
     }
 }

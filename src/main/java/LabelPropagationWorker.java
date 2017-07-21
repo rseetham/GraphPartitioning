@@ -35,7 +35,6 @@ public class LabelPropagationWorker implements Callable<Boolean>
         this.nodeId=nodeId;
     }
 
-    @Override
     public Boolean call()
     {
 
