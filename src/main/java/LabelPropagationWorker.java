@@ -1,6 +1,7 @@
 import java.util.Collections;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LabelPropagationWorker implements Callable<Boolean>
 {
@@ -9,10 +10,10 @@ public class LabelPropagationWorker implements Callable<Boolean>
     private Vector<Integer> labelCounts;
     private int nodeId;
     private int partitionSize = 200; //Number of Partition Needed from the Graph
-    private Vector<Node> nodeList; 	// Shared
+    private ConcurrentHashMap<Integer,Node> nodeList; 	// Shared
     private Vector<Integer> threshold; 	// Shared
 
-    public LabelPropagationWorker(Vector<Node> nodeList, Vector<Integer> threshold)
+    public LabelPropagationWorker(ConcurrentHashMap<Integer,Node> nodeList, Vector<Integer> threshold)
     {
         dominantLabels = new Vector<Integer>();
         labelCounts = new Vector<Integer>(nodeList.size());

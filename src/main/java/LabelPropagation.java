@@ -1,20 +1,24 @@
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.*;
 
 public class LabelPropagation
 {
 
-    private Vector<Node> nodeList;
+    private ConcurrentHashMap<Integer,Node> nodeList;
     private Vector<Integer> nodeOrder;
     private Vector<Integer> threshold;
+    Logger logger;
 
-    public LabelPropagation()
-    {
+    public LabelPropagation(int numNodes) {
+        nodeList = new ConcurrentHashMap<Integer,Node>();
+        nodeOrder = new Vector<Integer>(numNodes);
+        threshold = new Vector<Integer>(numNodes);
+        logger = Logger.getLogger("myLogger");
     }
 
     public void edgeCuts() throws IOException
@@ -44,18 +48,58 @@ public class LabelPropagation
         System.out.println("The total edge counts is "+ counts);
     }
 
+    public void readEdgesRMat (int numNodes, String fileName) {
+        File file = new AccessResource().readFileFromResources(fileName);
+        try {
 
-    public void readEdges(int numNodes, String fileName) throws IOException
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("\t");
+
+                int source = Integer.valueOf(parts[0]);
+                Node snode = nodeList.get(source);
+                if (snode == null) {
+                    nodeList.put(source, new Node(source, source));
+                    nodeOrder.add(source);
+                    threshold.add(source);
+                }
+                int target = Integer.valueOf(parts[1]);
+                Node tnode = nodeList.get(target);
+                if (tnode == null){
+                    nodeList.put(target,new Node(target,target));
+                    nodeOrder.add(target);
+                    threshold.add(target);
+                }
+
+                logger.log(WARNING,"Source is" + source);
+                logger.log(WARNING,"Target is" + target);
+
+                //Directed Graph
+                nodeList.get(source).addNeighbor(nodeList.get(target));
+                //.get(target).addNeighbor(nodeList.get(source));
+            }
+            scanner.close();
+        }
+
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("All edges read.");
+
+
+    }
+
+
+    public void readEdgesSh(int numNodes, String fileName) throws IOException
     {
         File file = new AccessResource().readFileFromResources(fileName);
 
-        nodeList = new Vector<Node>(numNodes);
-        nodeOrder = new Vector<Integer>(numNodes);
-        threshold = new Vector<Integer>(numNodes);
         for (int i=0; i<=numNodes; i++) {
-            nodeList.add(new Node(i,i));
-            nodeOrder.add(Integer.valueOf(i));
-            threshold.add(Integer.valueOf(1));
+            nodeList.put(new Integer(i),new Node(i,i));
+            nodeOrder.add(new Integer(i));
+            threshold.add(new Integer(i));
         }
         System.out.println("Added " + numNodes + " nodes.");
 
@@ -69,11 +113,12 @@ public class LabelPropagation
                 int source = Integer.valueOf(parts[0]);
                 int target = Integer.valueOf(parts[1]);
 
-                //System.out.println("Source is" + source);
-                //System.out.println("Target is" + target);
+                logger.log(WARNING,"Source is" + source);
+                logger.log(WARNING,"Target is" + target);
 
-                nodeList.get(source).addNeighbor(target);
-                nodeList.get(target).addNeighbor(source);
+                //Undirected Graph
+                nodeList.get(source).addNeighbor(nodeList.get(target));
+                nodeList.get(target).addNeighbor(nodeList.get(source));
             }
             scanner.close();
         }
@@ -82,7 +127,7 @@ public class LabelPropagation
             e.printStackTrace();
         }
 
-        System.out.println("All edges read.");
+        logger.log(INFO,"All edges read.");
     }
 
     public void writeMemberships(String file) throws IOException {

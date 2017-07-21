@@ -5,13 +5,13 @@ public class Node
 {
     private int id;
     private int label;
-    private Set<Integer> neighbors;
+    private Set<Node> neighbors;
 
     public Node(int id, int label)
     {
         this.id=id;
         this.label=label;
-        this.neighbors = new HashSet<Integer>();
+        this.neighbors = new HashSet<Node>();
     }
 
     public int getId()
@@ -29,18 +29,18 @@ public class Node
         this.label = label;
     }
 
-    public Set<Integer> getNeighbors()
+    public Set<Node> getNeighbors()
     {
         return neighbors;
     }
 
-    public void setNeighbors(Set<Integer> neighbors)
+    public void setNeighbors(Set<Node> neighbors)
     {
         this.neighbors = neighbors;
     }
 
-    public void addNeighbor(int id)
+    public void addNeighbor(Node n)
     {
-        this.neighbors.add(Integer.valueOf(id));
+        this.neighbors.add(n);
     }
 }

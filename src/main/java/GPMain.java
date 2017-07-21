@@ -11,7 +11,7 @@ public class GPMain {
 
         long startTime = System.nanoTime();
         //input is "edgelist" format "id id" sorted by first id (ids are sequentially numbered 1 to numNodes inclusive)
-        lp.readEdges(numNodes, "gedges.txt");
+        lp.readEdgesRMat(numNodes, "gedges.txt");
         lp.findCommunities("base_output_path",numThreads); //directory to save current list of communities to after each pass as well as final output files
         lp.writeMemberships("membership.txt");
         lp.writeMembershipsSmart("memberships_renumbered.txt");
